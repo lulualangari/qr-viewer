@@ -1,139 +1,102 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>عرض الجملة</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Motivational Quotes</title>
   <style>
-    /* 🌈 الخلفية المتدرجة */
     body {
-      font-family: 'Cairo', sans-serif;
-      margin: 0;
-      height: 100vh;
+      font-family: system-ui, sans-serif;
+      background: linear-gradient(to bottom right, #FBF2EB, #E1A96E, #00645A);
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #FBF2EB, #E1A96E, #00645A);
-      background-size: 300% 300%;
-      animation: gradientShift 10s ease infinite;
-    }
-
-    /* حركة للخلفية */
-    @keyframes gradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    /* البطاقة */
-    .card {
-      background: rgba(255,255,255,0.85);
-      backdrop-filter: blur(6px);
-      border-radius: 20px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-      padding: 40px 50px;
-      text-align: center;
-      max-width: 500px;
-      animation: fadeIn 1s ease;
-    }
-
-    /* حركة البطاقة */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* الشعار */
-    .logo {
-  width: 120px;
-  margin-bottom: 20px;
-  /* ألغِ أي تأثيرات دائرية أو حدود أو ظل */
-  border-radius: 0;     /* كان 50% */
-  border: none;         /* كان 3px ... */
-  background: transparent;
-  box-shadow: none;     /* كان ظل */
-  display: inline-block;
-}
-
-    /* الرقم */
-    .seq {
-      color: #00645A;
-      font-size: 18px;
-      margin-bottom: 10px;
-    }
-
-    /* الجملة */
-    .txt {
-      font-size: 26px;
-      color: #333;
-      line-height: 1.6;
+      height: 100vh;
       margin: 0;
+      color: #004438;
     }
-
-    /* الزر */
-    button {
-      margin-top: 25px;
-      background: #00645A;
-      color: white;
-      border: none;
-      padding: 10px 25px;
-      border-radius: 10px;
-      font-size: 15px;
-      cursor: pointer;
-      transition: 0.3s;
+    .card {
+      background: rgba(255,255,255,0.9);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      max-width: 500px;
+      text-align: center;
     }
-
-    button:hover {
-      background: #E1A96E;
-      color: #fff;
-    }
-
-    /* التذييل */
-    .footer {
-      margin-top: 25px;
-      color: #00645A;
-      font-size: 13px;
-    }
+    h1 { font-size: 20px; margin-bottom: 20px; }
+    #seq { font-weight: bold; color: #00645A; margin-bottom: 10px; }
+    #text { font-size: 22px; line-height: 1.5; color: #333; }
   </style>
 </head>
 <body>
   <div class="card">
-    <!-- 🟢 شعار المشروع -->
-    <img src="ardaralogo.png" alt="Logo" class="logo">
-
-    <!-- 🟡 الجملة والرقم -->
-    <h3 class="seq" id="seq">...</h3>
-    <p class="txt" id="text">...</p>
-
-    <!-- 🔘 زر الرجوع -->
-    <button onclick="window.history.back()">رجوع</button>
-
-    <!-- 🔻 تذييل الصفحة -->
-    <div class="footer">© 2025 ArDara QR System</div>
+    <h1>Quote of the Moment 💭</h1>
+    <div id="seq"></div>
+    <div id="text">Loading...</div>
   </div>
 
-  <script>
-    (function(){
-      const hash = location.hash.slice(1);
-      const seqEl = document.getElementById('seq');
-      const textEl = document.getElementById('text');
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, runTransaction, get, child, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-      if(!hash){
-        seqEl.textContent = 'لا توجد بيانات';
-        textEl.textContent = '';
-        return;
-      }
+    // ⚠️ الصقي إعدادات Firebase الخاصة بك هنا 👇
+    const firebaseConfig = {
+  apiKey: "AIzaSyCDq0pcklPgW_7nzgsMW-yYUQMwQ6k_AMI",
+  authDomain: "qr-codes-project-22aa2.firebaseapp.com",
+  databaseURL: "https://qr-codes-project-22aa2-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "qr-codes-project-22aa2",
+  storageBucket: "qr-codes-project-22aa2.firebasestorage.app",
+  messagingSenderId: "16999917279",
+  appId: "1:16999917279:web:173a0fc95dad1dbe88eb6a",
+  measurementId: "G-Y8BK62DYHD"
+};
 
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const seqEl  = document.getElementById("seq");
+    const textEl = document.getElementById("text");
+
+    async function claimNextQuote(){
       try {
-        const json = decodeURIComponent(escape(atob(hash)));
-        const obj = JSON.parse(json);
-        seqEl.textContent = 'Seq: ' + (obj.seq ?? '—');
-        textEl.textContent = obj.text ?? '';
-      } catch(e) {
-        seqEl.textContent = 'خطأ في البيانات';
-        textEl.textContent = '';
+        // زيدي المؤشر الذريّاً
+        const nextRef = ref(db, "nextSeq");
+        const tx = await runTransaction(nextRef, (current) => {
+          if (current == null) return 1;
+          return current + 1;
+        });
+
+        if (!tx.committed) throw new Error("Transaction failed");
+        const newVal = tx.snapshot.val();
+        const claimedSeq = newVal - 1;
+
+        const msgSnap = await get(child(ref(db), `messages/${claimedSeq}`));
+        if (!msgSnap.exists()) {
+          textEl.textContent = "No more quotes available.";
+          return;
+        }
+
+        const msg = msgSnap.val();
+        if (msg.used === true) {
+          textEl.textContent = "This quote was already used.";
+          return;
+        }
+
+        await update(ref(db, `messages/${claimedSeq}`), {
+          used: true,
+          usedAt: serverTimestamp()
+        });
+
+        seqEl.textContent  = `#${claimedSeq}`;
+        textEl.textContent = msg.text;
+
+      } catch (err) {
+        textEl.textContent = "Connection error. Please try again.";
+        console.error(err);
       }
-    })();
+    }
+
+    claimNextQuote();
   </script>
 </body>
 </html>
