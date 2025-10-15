@@ -5,45 +5,135 @@
   <title>عرض الجملة</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body{font-family:system-ui,Arial;background:#f7fbff;margin:0;display:flex;align-items:center;justify-content:center;height:100vh}
-    .card{background:#fff;padding:24px 28px;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.08);max-width:560px;text-align:center}
-    .seq{color:#6b7280;margin:0 0 10px}
-    .txt{font-size:24px;margin:0;word-wrap:break-word}
-    .muted{color:#6b7280;font-size:13px;margin-top:10px}
+    /* 🌈 الخلفية المتدرجة */
+    body {
+      font-family: 'Cairo', sans-serif;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #FBF2EB, #E1A96E, #00645A);
+      background-size: 300% 300%;
+      animation: gradientShift 10s ease infinite;
+    }
+
+    /* حركة للخلفية */
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* البطاقة */
+    .card {
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(6px);
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      padding: 40px 50px;
+      text-align: center;
+      max-width: 500px;
+      animation: fadeIn 1s ease;
+    }
+
+    /* حركة البطاقة */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* الشعار */
+    .logo {
+  width: 120px;
+  margin-bottom: 20px;
+  /* ألغِ أي تأثيرات دائرية أو حدود أو ظل */
+  border-radius: 0;     /* كان 50% */
+  border: none;         /* كان 3px ... */
+  background: transparent;
+  box-shadow: none;     /* كان ظل */
+  display: inline-block;
+}
+
+    /* الرقم */
+    .seq {
+      color: #00645A;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    /* الجملة */
+    .txt {
+      font-size: 26px;
+      color: #333;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    /* الزر */
+    button {
+      margin-top: 25px;
+      background: #00645A;
+      color: white;
+      border: none;
+      padding: 10px 25px;
+      border-radius: 10px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #E1A96E;
+      color: #fff;
+    }
+
+    /* التذييل */
+    .footer {
+      margin-top: 25px;
+      color: #00645A;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
   <div class="card">
-    <h3 class="seq" id="seq">…</h3>
-    <p class="txt" id="text">…</p>
-    <div class="muted" id="hint"></div>
+    <!-- 🟢 شعار المشروع -->
+    <img src="ardaralogo.png" alt="Logo" class="logo">
+
+    <!-- 🟡 الجملة والرقم -->
+    <h3 class="seq" id="seq">...</h3>
+    <p class="txt" id="text">...</p>
+
+    <!-- 🔘 زر الرجوع -->
+    <button onclick="window.history.back()">رجوع</button>
+
+    <!-- 🔻 تذييل الصفحة -->
+    <div class="footer">© 2025 ArDara QR System</div>
   </div>
 
-<script>
-(function(){
-  const hash = location.hash.slice(1);
-  const seqEl = document.getElementById('seq');
-  const textEl = document.getElementById('text');
-  const hintEl = document.getElementById('hint');
+  <script>
+    (function(){
+      const hash = location.hash.slice(1);
+      const seqEl = document.getElementById('seq');
+      const textEl = document.getElementById('text');
 
-  if(!hash){
-    seqEl.textContent = 'لا توجد بيانات';
-    textEl.textContent = '';
-    hintEl.textContent = 'استخدمي QR مولّد من index.html';
-    return;
-  }
-  try{
-    const json = decodeURIComponent(escape(atob(hash)));
-    const obj = JSON.parse(json);
-    seqEl.textContent = 'Seq: ' + (obj.seq ?? '—');
-    textEl.textContent = obj.text ?? '';
-    hintEl.textContent = 'تم التحميل من QR';
-  }catch(e){
-    seqEl.textContent = 'خطأ في البيانات';
-    textEl.textContent = '';
-    hintEl.textContent = 'تأكّدي أن الرابط يحتوي Base64 صحيح بعد #';
-  }
-})();
-</script>
+      if(!hash){
+        seqEl.textContent = 'لا توجد بيانات';
+        textEl.textContent = '';
+        return;
+      }
+
+      try {
+        const json = decodeURIComponent(escape(atob(hash)));
+        const obj = JSON.parse(json);
+        seqEl.textContent = 'Seq: ' + (obj.seq ?? '—');
+        textEl.textContent = obj.text ?? '';
+      } catch(e) {
+        seqEl.textContent = 'خطأ في البيانات';
+        textEl.textContent = '';
+      }
+    })();
+  </script>
 </body>
 </html>
