@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>إعادة الدورة</title>
+<style>
+  body{font-family:system-ui;background:#f6f6f6;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}
+  .card{background:#fff;padding:24px 28px;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.08);text-align:center;width:360px}
+  button{background:#00645A;color:#fff;border:0;border-radius:10px;padding:10px 16px;cursor:pointer}
+  input{width:100%;padding:10px;border:1px solid #ddd;border-radius:10px;margin:6px 0 14px}
+  .ok{color:#00645A}.err{color:#b00020}
+</style>
+<div class="card">
+  <h3>إعادة الدورة (Reset)</h3>
+  <p>أدخل كلمة المرور:</p>
+  <input id="pwd" type="password" placeholder="Admin pass">
+  <button id="run">إعادة</button>
+  <p id="msg"></p>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, get, update, child } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  // الصقي إعدادات مشروعك هنا:
+  const firebaseConfig = {
+  apiKey: "AIzaSyCDq0pcklPgW_7nzgsMW-yYUQMwQ6k_AMI",
+  authDomain: "qr-codes-project-22aa2.firebaseapp.com",
+  databaseURL: "https://qr-codes-project-22aa2-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "qr-codes-project-22aa2",
+  storageBucket: "qr-codes-project-22aa2.firebasestorage.app",
+  messagingSenderId: "16999917279",
+  appId: "1:16999917279:web:173a0fc95dad1dbe88eb6a",
+  measurementId: "G-Y8BK62DYHD"
+};
+
+  const ADMIN_PASS = "1234"; // غيّريها لشيء خاص فيك
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+
+  const btn = document.getElementById('run');
+  const pwd = document.getElementById('pwd');
+  const msg = document.getElementById('msg');
+
+  btn.onclick = async () => {
+    msg.textContent = "";
+    if (pwd.value !== ADMIN_PASS){ msg.textContent="كلمة المرور غير صحيحة"; msg.className="err"; return; }
+    try {
+      // حمل كل الرسائل
+      const snap = await get(child(ref(db), "messages"));
+      if (!snap.exists()){ msg.textContent="لا توجد رسائل"; msg.className="err"; return; }
+
+      const messages = snap.val();
+      // جهّز تحديثات مجمّعة
+      const updates = { nextSeq: 1 };
+      for (const k of Object.keys(messages)){
+        updates[`messages/${k}/used`] = false;
+        updates[`messages/${k}/usedAt`] = null; // إزالة الختم الزمني
+      }
+      await update(ref(db), updates);
+
+      msg.textContent = "تمت إعادة الدورة بنجاح ✨";
+      msg.className = "ok";
+      pwd.value = "";
+    } catch (e){
+      console.error(e);
+      msg.textContent = "فشل التنفيذ";
+      msg.className = "err";
+    }
+  };
+</script>
