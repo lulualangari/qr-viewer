@@ -5,68 +5,116 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Motivational Quotes</title>
   <style>
+    /* الخلفية */
     body {
-      font-family: system-ui, sans-serif;
+      font-family: "Segoe UI", Arial, sans-serif;
       background: linear-gradient(to bottom right, #FBF2EB, #E1A96E, #00645A);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
       margin: 0;
-      color: #004438;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      color: #003d34;
     }
+
+    /* الكارد */
     .card {
-      background: rgba(255,255,255,0.9);
-      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 24px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
       padding: 40px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-      max-width: 500px;
       text-align: center;
+      max-width: 600px;
+      width: 90%;
+      margin-top: 40px;
     }
-    h1 { font-size: 20px; margin-bottom: 20px; }
-    #seq { font-weight: bold; color: #00645A; margin-bottom: 10px; }
-    #text { font-size: 22px; line-height: 1.5; color: #333; }
+
+    /* اللوقو */
+    .logo {
+      margin-top: 40px;
+      width: 140px;
+      height: auto;
+    }
+
+    h1 {
+      font-size: 20px;
+      color: #00645A;
+      margin-bottom: 20px;
+    }
+
+    #seq {
+      font-weight: bold;
+      color: #E1A96E;
+      margin-bottom: 10px;
+    }
+
+    #text {
+      font-size: 22px;
+      line-height: 1.5;
+      color: #333;
+    }
+
+    /* الفوتر */
+    footer {
+      width: 100%;
+      text-align: center;
+      padding: 15px 0;
+      background: linear-gradient(to right, #E1A96E, #00645A);
+      color: white;
+      font-weight: 500;
+      font-size: 14px;
+      letter-spacing: 1px;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+    }
   </style>
 </head>
 <body>
+
+  <!-- شعار أردارا -->
+  <img src="ardaralogo.png" alt="Ardara Logo" class="logo">
+
+  <!-- الكارد -->
   <div class="card">
     <h1>Quote of the Moment 💭</h1>
     <div id="seq"></div>
     <div id="text">Loading...</div>
   </div>
 
+  <!-- الفوتر -->
+  <footer>
+    by Digital and Innovation Team
+  </footer>
+
+  <!-- Firebase Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, runTransaction, get, child, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-    // ⚠️ الصقي إعدادات Firebase الخاصة بك هنا 👇
+    // ⚠️ الصقي إعدادات Firebase الخاصة بك هنا
     const firebaseConfig = {
-  apiKey: "AIzaSyCDq0pcklPgW_7nzgsMW-yYUQMwQ6k_AMI",
-  authDomain: "qr-codes-project-22aa2.firebaseapp.com",
-  databaseURL: "https://qr-codes-project-22aa2-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "qr-codes-project-22aa2",
-  storageBucket: "qr-codes-project-22aa2.firebasestorage.app",
-  messagingSenderId: "16999917279",
-  appId: "1:16999917279:web:173a0fc95dad1dbe88eb6a",
-  measurementId: "G-Y8BK62DYHD"
-};
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+      projectId: "YOUR_PROJECT",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    const seqEl  = document.getElementById("seq");
+    const seqEl = document.getElementById("seq");
     const textEl = document.getElementById("text");
 
     async function claimNextQuote(){
       try {
-        // زيدي المؤشر الذريّاً
         const nextRef = ref(db, "nextSeq");
-        const tx = await runTransaction(nextRef, (current) => {
-          if (current == null) return 1;
-          return current + 1;
-        });
-
+        const tx = await runTransaction(nextRef, (current) => current == null ? 1 : current + 1);
         if (!tx.committed) throw new Error("Transaction failed");
+
         const newVal = tx.snapshot.val();
         const claimedSeq = newVal - 1;
 
@@ -87,9 +135,8 @@
           usedAt: serverTimestamp()
         });
 
-        seqEl.textContent  = `#${claimedSeq}`;
+        seqEl.textContent = `#${claimedSeq}`;
         textEl.textContent = msg.text;
-
       } catch (err) {
         textEl.textContent = "Connection error. Please try again.";
         console.error(err);
@@ -98,5 +145,6 @@
 
     claimNextQuote();
   </script>
+
 </body>
 </html>
